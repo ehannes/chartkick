@@ -911,10 +911,35 @@
             }
             var options = merge(merge(defaultOptions, chartOptions), chart.options.library || {});
 
+            var labelColumnProvided = function() {
+              // Assuming that all data rows has equally many columns
+              // and check if the first row has a fourth label column provided
+              return (chart.data[0].length == 4) ? true : false;
+            }
+
             var data = new google.visualization.DataTable();
             data.addColumn({type: "string", id: "Name"});
+            if (labelColumnProvided()) {
+              data.addColumn({type: "string", id: "Label"});
+            }
             data.addColumn({type: "date", id: "Start"});
             data.addColumn({type: "date", id: "End"});
+
+            if (labelColumnProvided()) {
+              // TODO: It would be better not having to rearrange the columns...
+              // Rearrange columns from [Name, Start, End, Label]
+              // to [Name, Label, Start, End]
+              for(var i = 0; i < chart.data.length; i++) {
+                var row = chart.data[i];
+                var label = row[3];
+
+                row[3] = row[2];
+                row[2] = row[1];
+                row[1] = label;
+                chart.data[i] = row;
+              }
+            }
+
             data.addRows(chart.data);
 
             chart.element.style.lineHeight = "normal";
